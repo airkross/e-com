@@ -6,20 +6,35 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     initData: [],
-    filteredData: []
+    postsData: []
   },
   mutations: {
     // производим первое получение данных и помещение в стейт. На основе этих данных буду прописывать геттеры для отрисовки фильтров
     initFetchData(state) {
       console.log('call initFetchData mutation');
       state.initData = file.hotels;
+      state.postsData = file.hotels;
     },
     getFiltersPosts(state, data) {
-      console.log(data)
       let fetchData = file.hotels;
       let result = [];
-
-      console.log(result)
+      if (data[0].length > 0) {
+        for (let i = 0; i < data[0].length; i++) {
+          fetchData = fetchData.filter(item => {
+            if ((typeof data[0][i] == 'object')) {
+              return item.reviews_amount >= data[0][i].reviews_amount
+            } else {
+              return item.country == data[0][i] || item.min_price < data[0][i]
+            }
+          })
+        }
+      }
+      const keys = Object.keys(data[1]).filter(key => data[1].hasOwnProperty(key));
+      result = fetchData.filter(elem => {
+        const commonKeys = keys.filter(key => elem.hasOwnProperty(key));
+        return commonKeys.reduce((flag, key) => (flag && data[1][key].includes(elem[key])), true);
+      });
+      state.postsData = result;
     }
   },
   actions: {
@@ -74,22 +89,25 @@ export default new Vuex.Store({
     getMaxPrice(state) {
       console.log('call getMaxPrice');
       let max = state.initData.map(item => {
-        return item.min_price
+        return item.min_price + 1
       })
       return Math.max(...max)
     },
     getMinPrice(state) {
       console.log('call getMinPrice');
       let min = state.initData.map(item => {
-        return item.min_price
+        return item.min_price -1
       })
       return Math.min(...min)
+    },
+    getPagination(state) {
+      console.log('call getPagination');
+      return state.postsData.length
     },
     getPosts(state) {
       return curPage => {
         console.log('call getPosts');
-        console.log(curPage)
-        return state.initData.map((item, index) => {
+        return state.postsData.map((item, index) => {
           return {
             id: index + 1,
             'name': item.name,
@@ -97,10 +115,6 @@ export default new Vuex.Store({
           }
         }).filter((item, ind) => ind < curPage * 3 && ind >= (curPage * 3 - 3))
       }
-    },
-    getPagination(state) {
-      console.log('call getPagination');
-      return state.initData.length
     }
   },
   modules: {

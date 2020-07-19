@@ -125,7 +125,6 @@ export default {
     this.postsCount = this.$store.getters.getPagination;
     this.pages = Math.ceil(this.postsCount / 3);
     this.curPage = 1;
-    console.log(this.pages);
   },
   created() {
     //производим запрос для получения данных и для того чтобы положить их в стейт. Так как нам еще не нужен отрисованный DOM использую хук created()
@@ -167,32 +166,33 @@ export default {
       } else {
         this.countFeed = Math.trunc(val);
       }
-    },
-    curPage: function(val) {
-      console.log(val);
     }
   },
   methods: {
     // отправляем запрос на получение отфильтрованых постов
     submit() {
       let data = [];
+      let data1 = [];
+      let obj = {};
       if (this.country) {
         data.push(this.country);
       }
       if (this.types.length) {
-        data.push(this.types)
+        obj.type = this.types;
+        // data1.push(this.types)
       }
-      if(this.stars.length){
-        data.push(this.stars)
+      if (this.stars.length) {
+        obj.stars = this.stars;
+        // data1.push(this.stars)
       }
-      if(this.countFeed){
-        data.push({'reviews_amount': this.countFeed})
+      if (this.countFeed) {
+        data.push({ reviews_amount: this.countFeed });
       }
-      if(this.price){
-        data.push(this.price)
+      if (this.price) {
+        data.push(this.price);
       }
-      console.log(data)
-      this.$store.commit('getFiltersPosts', data)
+      data1.push(obj);
+      this.$store.commit("getFiltersPosts", [data, obj]);
     },
     itemClick(index) {
       console.log(this.$refs);
