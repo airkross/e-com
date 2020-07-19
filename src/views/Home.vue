@@ -9,11 +9,8 @@
           <h4>Страна:</h4>
           <input list="countries" v-model="country" />
           <datalist id="countries" name="countries">
-            <option
-              v-for="country in getCountry"
-              :key="country.id"
-              :value="country.country"
-            >{{country.country}}</option>
+            <!-- вынес блок в компонент Country.vue -->
+            <app-country v-for="country in getCountry" :key="country.id" :countryProp="country"></app-country>
           </datalist>
           <!-- -------------------- -->
           <h4>Тип:</h4>
@@ -41,14 +38,14 @@
               </svg>
             </div>
             <div class="mdrop-body close" ref="mdropBody">
-              <div
-                class="mdrop-body-item"
+              <!-- вынес блок в компонент Type.vue, который в home.vue итерирую через v-for и произвожу работу с пропсами.-->
+              <!-- Все последующие блоки не выносил в отдельные компоненты -->
+              <app-type
                 v-for="item in getTypes"
                 :key="item.id"
-                ref="mdropBodyItem"
-                :data-index="item.type"
-                @click="itemClick(item.id)"
-              >{{item.type}}</div>
+                :typeProp="item"
+                @pushType="pushType($event)"
+              ></app-type>
             </div>
           </div>
           <!-- ------------------- -->
@@ -60,6 +57,7 @@
           </div>
           <!-- ------------------- -->
           <h4>Кол-во отзывов от:</h4>
+          <!-- применяю модификаторы для удаление пробелов и преобразования строки к числу -->
           <input type="text" v-model.number.trim="countFeed" />
           <!-- ------------------- -->
           <h4>Цена до:</h4>
@@ -107,8 +105,14 @@
 </template>
 
 <script>
+import appCountry from "../components/Country";
+import appType from "../components/Type";
 export default {
   name: "Home",
+  components: {
+    appCountry,
+    appType
+  },
   data() {
     return {
       country: "",
@@ -121,19 +125,19 @@ export default {
       curPage: ""
     };
   },
-  mounted() {},
   created() {
     //производим запрос для получения данных и для того чтобы положить их в стейт. Так как нам еще не нужен отрисованный DOM использую хук created()
     this.$store.commit("initFetchData");
   },
   computed: {
+    // возвращаю кол-во страниц и произвожу некоторые операции
     getPages() {
       this.postsCount = this.$store.getters.getPagination;
       this.curPage = 1;
       this.pages = Math.ceil(this.postsCount / 3);
-      console.log(this.pages);
       return this.pages;
     },
+    // получаем цену
     getPrice() {
       return this.price;
     },
@@ -162,6 +166,9 @@ export default {
       return this.$store.getters.getMinPrice;
     }
   },
+  // использую вотчер, чтобы следить за изменениями инпута и обрезания дродной части
+  // можно было написать обработчик через события, но решил 1 раз добавить вотчер, чтобы показать что знаю о нем
+  // на практике использую вотчеры редко, так как сильно грузям приложение
   watch: {
     countFeed: function(val) {
       if (Number.isInteger(val) || val == "") {
@@ -172,6 +179,13 @@ export default {
     }
   },
   methods: {
+    pushType(type) {
+      if (type.push) {
+        this.types.push(type.value);
+      } else {
+        this.types = this.types.filter(item => item != type.value);
+      }
+    },
     // отправляем запрос на получение отфильтрованых постов
     submit() {
       let data = [];
@@ -182,11 +196,9 @@ export default {
       }
       if (this.types.length) {
         obj.type = this.types;
-        // data1.push(this.types)
       }
       if (this.stars.length) {
         obj.stars = this.stars;
-        // data1.push(this.stars)
       }
       if (this.countFeed) {
         data.push({ reviews_amount: this.countFeed });
@@ -197,19 +209,7 @@ export default {
       data1.push(obj);
       this.$store.commit("getFiltersPosts", [data, obj]);
     },
-    itemClick(index) {
-      console.log(this.$refs);
-      this.$refs.mdropBodyItem[index - 1].classList.toggle("active");
-      if (this.$refs.mdropBodyItem[index - 1].classList.contains("active")) {
-        this.types.push(this.$refs.mdropBodyItem[index - 1].dataset.index);
-        console.log(this.types);
-      } else {
-        this.types = this.types.filter(
-          item => item != this.$refs.mdropBodyItem[index - 1].dataset.index
-        );
-        console.log(this.types);
-      }
-    },
+
     toggle() {
       this.$refs.mdropBody.classList.toggle("close");
     },
@@ -220,14 +220,23 @@ export default {
       this.stars = [];
       this.countFeed = "";
       this.price = "";
-      for (let i = 0; i < this.$refs.mdropBodyItem.length; i++) {
-        if (this.$refs.mdropBodyItem[i].classList.contains("active")) {
-          this.$refs.mdropBodyItem[i].classList.remove("active");
+      for (
+        let i = 0;
+        i <
+        this.$refs.mdropBody.getElementsByClassName("mdrop-body-item").length;
+        i++
+      ) {
+        if (
+          this.$refs.mdropBody
+            .getElementsByClassName("mdrop-body-item")
+            [i].classList.contains("active")
+        ) {
+          this.$refs.mdropBody
+            .getElementsByClassName("mdrop-body-item")
+            [i].classList.remove("active");
           this.$refs.mdropBody.classList.add("close");
         }
       }
-      console.log(this.country);
-      console.log(this.types);
     }
   }
 };

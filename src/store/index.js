@@ -15,6 +15,7 @@ export default new Vuex.Store({
       state.initData = file.hotels;
       state.postsData = file.hotels;
     },
+    // главная функция осуществляющая фильтрацию постов и обновляющая стейт с постами
     getFiltersPosts(state, data) {
       let fetchData = file.hotels;
       let result = [];
@@ -41,6 +42,7 @@ export default new Vuex.Store({
     // в данном случаи у нас  все операции будут синхронными, так как json лежит локально, поэтому экшены не нужны и работа будет производиться через мутации
   },
   getters: {
+    // геттер получения стран. Использую для вывода списка фильтра стран. Также произвожу фильтрацию чтобы убрать дубликаты
     getCountry(state) {
       console.log('call getCountry');
       let resArr = [];
@@ -56,6 +58,7 @@ export default new Vuex.Store({
         }
       })
     },
+    // геттер получения типов. Использую для вывода списка фильтра типов. Также произвожу фильтрацию чтобы убрать дубликаты
     getTypes(state) {
       console.log('call getTypes');
       let resArr = [];
@@ -71,6 +74,7 @@ export default new Vuex.Store({
         }
       })
     },
+    // геттер получения звезд. Использую для вывода списка фильтра типов. Также произвожу фильтрацию чтобы убрать дубликаты
     getStars(state) {
       console.log('call getStars');
       let resArr = [];
@@ -96,7 +100,7 @@ export default new Vuex.Store({
     getMinPrice(state) {
       console.log('call getMinPrice');
       let min = state.initData.map(item => {
-        return item.min_price -1
+        return item.min_price - 1
       })
       return Math.min(...min)
     },
@@ -104,6 +108,7 @@ export default new Vuex.Store({
       console.log('call getPagination');
       return state.postsData.length
     },
+    // геттер получения постов. Использую для вывода списка постов.
     getPosts(state) {
       return curPage => {
         console.log('call getPosts');
