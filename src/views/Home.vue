@@ -92,7 +92,7 @@
             <div class="pags" ref="pages">
               <div
                 :class="p==curPage? 'p act':'p'"
-                v-for="(p,ind) in pages"
+                v-for="(p,ind) in getPages"
                 :data-page="p"
                 :key="ind"
                 @click="curPage = p"
@@ -121,16 +121,19 @@ export default {
       curPage: ""
     };
   },
-  mounted() {
-    this.postsCount = this.$store.getters.getPagination;
-    this.pages = Math.ceil(this.postsCount / 3);
-    this.curPage = 1;
-  },
+  mounted() {},
   created() {
     //производим запрос для получения данных и для того чтобы положить их в стейт. Так как нам еще не нужен отрисованный DOM использую хук created()
     this.$store.commit("initFetchData");
   },
   computed: {
+    getPages() {
+      this.postsCount = this.$store.getters.getPagination;
+      this.curPage = 1;
+      this.pages = Math.ceil(this.postsCount / 3);
+      console.log(this.pages);
+      return this.pages;
+    },
     getPrice() {
       return this.price;
     },
